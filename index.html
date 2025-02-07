@@ -1,0 +1,270 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kenneth's Portfolio</title>
+  <style>
+    /* Reset default styles */
+    body, h1, h2, h3, p, ul {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      background-color: #f4f9fb;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    /* Container for centered content */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Section styling */
+    div {
+      margin-bottom: 40px;
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    div:hover {
+      transform: translateY(-10px);
+    }
+
+    /* Main header */
+    h1 {
+      color: #0066cc;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      color: #333;
+      font-size: 1.25rem;
+      margin-bottom: 20px;
+    }
+
+    /* Button style */
+    button {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    /* Technologies section */
+    ul {
+      list-style: none;
+      padding-left: 20px;
+      margin-bottom: 20px;
+    }
+
+    li {
+      font-size: 1.2rem;
+      margin: 10px 0;
+      color: #555;
+      display: flex;
+      align-items: center;
+    }
+
+    li svg {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+    }
+
+    /* My Life outside Programming section */
+    .cat-icon {
+      width: 30px;
+      height: 30px;
+      margin-right: 10px;
+      fill: #ff7f50;
+    }
+
+    /* Work section */
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+    }
+
+    img:hover {
+      transform: scale(1.05);
+    }
+
+    a {
+      display: inline-block;
+      text-decoration: none;
+      background-color: #0066cc;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    a:hover {
+      background-color: #005bb5;
+    }
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 1s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Navbar styling */
+    nav {
+      background-color: #333;
+      padding: 15px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 15px;
+      font-size: 1rem;
+    }
+
+    nav a:hover {
+      background-color: #555;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: space-around;
+      width: 30px;
+      height: 25px;
+    }
+
+    .hamburger div {
+      height: 4px;
+      width: 100%;
+      background-color: white;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 15px;
+    }
+
+    /* Mobile styles */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        background-color: #333;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        padding: 20px 0;
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .hamburger {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">
+      <a href="me.html">Kenneth's Portfolio</a>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <div class="nav-links">
+      <a href="me.html">Home</a>
+      <a href="quiz.html">Quiz</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="fade-in">
+      <h1>Hello, my name is Kenneth</h1>
+      <h3>I am an 11-year-old student at Oak Crest Academy with a love for technology!</h3>
+      <button>About Me</button>
+    </div>
+
+    <div class="fade-in">
+      <h1>A bit about my journey</h1>
+      <p>I enjoy playing basketball, and I love listening to Michael Jackson's songs—they make me happy and energize me. I also have a strong passion for technology. All of these things bring me joy and help me grow in many ways!</p>
+    </div>
+
+    <div class="fade-in">
+      <h1>My Technologies</h1>
+      <ul>
+        <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2c5.5 0 10 4.5 10 10S17.5 22 12 22 2 17.5 2 12 6.5 2 12 2zm0 2C8.1 4 5 7.1 5 10.7c0 1.7.9 3.3 2.4 4.2l1.1-.8c-.7-.8-1.1-1.8-1.1-2.7 0-1.5 1.3-2.8 2.8-2.8 1.5 0 2.8 1.3 2.8 2.8s-1.3 2.8-2.8 2.8c-.6 0-1.2-.3-1.7-.8l-.8 1.1c1.1.7 2.4 1.2 3.8 1.2 3.9 0 7-3.1 7-7s-3.1-7-7-7z"/></svg>HTML</li>
+        <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 7h-2V5c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v2H3c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-2 10H5V9h14v8zm-6 2v2H9v-2h4z"/></svg>CSS</li>
+        <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm1-13h-2v6h2V7zm0 8h-2v2h2v-2z"/></svg>VS Code</li>
+        <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 3h16c.6 0 1 .4 1 1v16c0 .6-.4 1-1 1H4c-.6 0-1-.4-1-1V4c0-.6.4-1 1-1zM12 18c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3z"/></svg>GitHub</li>
+      </ul>
+    </div>
+
+    <div class="fade-in">
+      <h1>My Life outside Programming</h1>
+      <p>In my free time, I love to play video games, especially League of Legends, Pokémon TCG, and Fortnite. I’m also a proud father to two adorable cats, Tom and Lucy. <svg class="cat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm0 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0 4c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm-3 6h6v2h-6z"/></svg></p>
+      <p>I also enjoy sports, including Basketball, Football, and Golf.</p>
+    </div>
+
+    <div class="fade-in">
+      <h1>Here's My Work!</h1>
+      <h2>Title</h2>
+      <h3>Description</h3>
+      <img src="img1.png" alt="Project Image" height="400" width="400">
+      <a href="#">Demo here</a>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const navLinks = document.querySelector('.nav-links');
+      navLinks.classList.toggle('active');
+    }
+  </script>
+</body>
+</html>
