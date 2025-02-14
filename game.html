@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Shooter Game with Scrolling Map and Verticality</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #3a3a3a;
+            font-family: 'Arial', sans-serif;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #222;
+            border: 2px solid #000;
+        }
+
+        #game-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 18px;
+            z-index: 1;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .weapon-button {
+            position: absolute;
+            bottom: 20px;
+            left: 10px;
+            padding: 10px 20px;
+            background-color: #444;
+            color: white;
+            border: 2px solid #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .weapon-button:hover {
+            background-color: #555;
+        }
+
+        .health-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff4040;
+            width: 200px;
+            height: 20px;
+            border-radius: 10px;
+            border: 1px solid #000;
+        }
+
+        .health-bar-inner {
+            height: 100%;
+            background-color: #00ff00;
+            border-radius: 10px;
+        }
+
+        .level-text {
+            color: white;
+            font-size: 20px;
+            margin-left: 10px;
+        }
+
+        .weapon-info {
+            color: white;
+            font-size: 20px;
+            margin-left: 10px;
+        }
+
+        .zombie {
+            background-color: #a0e2a3;
+            border-radius: 5px;
+            width: 40px;
+            height: 40px;
+        }
+
+        .bullet {
+            background-color: yellow;
+            width: 10px;
+            height: 5px;
+        }
+
+        .sword {
+            background-color: green;
+            height: 10px;
+            width: 80px;
+        }
+
+        .player {
+            background-color: #4682b4;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .sword-swing {
+            background-color: #8b0000;
+            width: 100px;
+            height: 10px;
+            position: absolute;
+        }
+
+        /* Terrain Styles */
+        .platform {
+            background-color: #8b4513;
+            width: 200px;
+            height: 20px;
+            position: absolute;
+        }
+
+        .wall {
+            background-color: #808080;
+            width: 50px;
+            height: 100px;
+            position: absolute;
+        }
+
+        .pit {
+            background-color: #ff6347;
+            width: 100px;
+            height: 20px;
+            position: absolute;
+        }
+
+        /* Background */
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://cdn.pixabay.com/photo/2016/11/19/11/25/landscape-1835562_960_720.jpg');
+            background-size: cover;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-info">
+        <div class="level-text">Level: <span id="level">1</span></div>
+        <div class="weapon-info">Weapon: Gun</div>
+        <div>Enemies Left: <span id="enemyCount">0</span></div>
+        <div>Lives: <span id="lives">3</span></div>
+    </div>
+    <div class="health-bar">
+        <div id="health-bar-inner" class="health-bar-inner"></div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <button class="weapon-button" id="switchWeaponBtn">Switch Weapon</button>
+
+    <div class="background"></div> <!-- Background div -->
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+
+        let level = 1;
+        let health = 100;
+        let currentWeapon = 'gun';
+        let isGameOver = false;
+        let lives = 3;
+        let enemyCount = 0;
+
+        // Define the camera object
+        const camera = {
+            x: 0,
+            y: 0,
+            width: canvas.width,
+            height: canvas.height,
+            follow(player) {
+                this.x = Math.max(0, Math.min(player.x - this.width / 2, worldWidth - this.width));
+                this.y = Math.max(0, Math.min(player.y - this.height / 2, worldHeight - this.height));
+            }
+        };
+
+        const worldWidth = 1600;
+        const worldHeight = 1200;
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 100,
+            width: 50,
+            height: 50,
+            speed: 5,
+            jumpHeight: 20,
+            velocityY: 0,
+            gravity: 1,
+            jumping: false,
+            grounded: false,
+            health: 100,
+            weapon: currentWeapon,
+            draw() {
+                ctx.fillStyle = '#4682b4';
+                ctx.fillRect(this.x - camera.x, this.y - camera.y, this.width, this.height);
+            },
+            move() {
+                if (keyState['ArrowLeft'] && !this.checkCollision('left')) this.x -= this.speed;
+                if (keyState['ArrowRight'] && !this.checkCollision('right')) this.x += this.speed;
+                if (keyState['ArrowUp'] && !this.jumping && this.grounded) this.jump();
+                if (keyState['ArrowDown'] && !this.checkCollision('down')) this.y += this.speed;
+
+                if (!this.grounded) {
+                    this.velocityY += this.gravity;
+                } else {
+                    this.velocityY = 0;
+                }
+
+                this.y += this.velocityY;
+
+                this.grounded = false;
+                for (let plat of platforms) {
+                    if (this.y + this.height <= plat.y + 5 && this.y + this.height + this.velocityY >= plat.y && this.x + this.width > plat.x && this.x < plat.x + plat.width) {
+                        this.y = plat.y - this.height;
+                        this.grounded = true;
+                    }
+                }
+
+                if (this.y > worldHeight - this.height) {
+                    this.y = worldHeight - this.height;
+                    this.grounded = true;
+                }
+            },
+            jump() {
+                this.velocityY = -this.jumpHeight;
+                this.jumping = true;
+            },
+            checkCollision(direction) {
+                let potentialX = this.x;
+                let potentialY = this.y;
+
+                if (direction === 'left') potentialX -= this.speed;
+                if (direction === 'right') potentialX += this.speed;
+                if (direction === 'up') potentialY -= this.speed;
+                if (direction === 'down') potentialY += this.speed;
+
+                for (let plat of platforms) {
+                    if (
+                        potentialX < plat.x + plat.width &&
+                        potentialX + this.width > plat.x &&
+                        potentialY < plat.y + plat.height &&
+                        potentialY + this.height > plat.y
+                    ) {
+                        return true;
+                    }
+                }
+
+                for (let wall of walls) {
+                    if (
+                        potentialX < wall.x + wall.width &&
+                        potentialX + this.width > wall.x &&
+                        potentialY < wall.y + wall.height &&
+                        potentialY + this.height > wall.y
+                    ) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        };
+
+        const zombies = [];
+        const bullets = [];
+        const sword = [];
+        const platforms = [];
+        const walls = [];
+        const pits = [];
+
+        let keyState = {};
+
+        window.addEventListener('keydown', (e) => {
+            keyState[e.key] = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            keyState[e.key] = false;
+        });
+
+        function spawnZombies() {
+            zombies.length = 0;
+            enemyCount = 0;
+            for (let i = 0; i < 10 * level; i++) {
+                zombies.push({
+                    x: Math.random() * worldWidth,
+                    y: worldHeight - 100,  // Place all zombies at the bottom
+                    width: 40,
+                    height: 40,
+                    health: 20,
+                    speed: 2 + Math.random() * 2
+                });
+                enemyCount++;
+            }
+            document.getElementById('enemyCount').innerText = enemyCount;
+        }
+
+        function spawnTerrain() {
+            platforms.push({ x: 100, y: worldHeight - 100 });  // Place platforms at the bottom
+            platforms.push({ x: 300, y: worldHeight - 100 });
+            platforms.push({ x: 500, y: worldHeight - 100 });
+
+            walls.push({ x: 700, y: worldHeight - 100 });
+            walls.push({ x: 900, y: worldHeight - 100 });
+
+            pits.push({ x: 1100, y: worldHeight - 100 });
+        }
+
+        function switchWeapon() {
+            currentWeapon = currentWeapon === 'gun' ? 'sword' : 'gun';
+            document.querySelector('.weapon-info').innerHTML = `Weapon: ${currentWeapon.charAt(0).toUpperCase() + currentWeapon.slice(1)}`;
+        }
+
+        function fireGun() {
+            if (currentWeapon === 'gun') {
+                bullets.push({
+                    x: player.x + player.width / 2,
+                    y: player.y,
+                    width: 10,
+                    height: 5,
+                    speed: 7
+                });
+            }
+        }
+
+        function swordAttack() {
+            if (currentWeapon === 'sword') {
+                sword.push({
+                    x: player.x + player.width,
+                    y: player.y,
+                    width: 80,
+                    height: 10,
+                    speed: 15
+                });
+            }
+        }
+
+        function checkCollisions() {
+            bullets.forEach((bullet, bulletIndex) => {
+                zombies.forEach((zombie, zombieIndex) => {
+                    if (bullet.x < zombie.x + zombie.width &&
+                        bullet.x + bullet.width > zombie.x &&
+                        bullet.y < zombie.y + zombie.height &&
+                        bullet.y + bullet.height > zombie.y) {
+                        zombies.splice(zombieIndex, 1);
+                        bullets.splice(bulletIndex, 1);
+                        enemyCount--;
+                        document.getElementById('enemyCount').innerText = enemyCount;
+                    }
+                });
+            });
+
+            sword.forEach((swordSlice, swordIndex) => {
+                zombies.forEach((zombie, zombieIndex) => {
+                    if (swordSlice.x < zombie.x + zombie.width &&
+                        swordSlice.x + swordSlice.width > zombie.x &&
+                        swordSlice.y < zombie.y + zombie.height &&
+                        swordSlice.y + swordSlice.height > zombie.y) {
+                        zombies.splice(zombieIndex, 1);
+                        sword.splice(swordIndex, 1);
+                        enemyCount--;
+                        document.getElementById('enemyCount').innerText = enemyCount;
+                    }
+                });
+            });
+        }
+
+        function moveZombies() {
+            zombies.forEach(zombie => {
+                zombie.x += zombie.speed;
+                if (zombie.x > worldWidth || zombie.x < 0) zombie.speed = -zombie.speed;
+                zombie.y += zombie.speed;
+                if (zombie.y > worldHeight || zombie.y < 0) zombie.speed = -zombie.speed;
+
+                if (zombie.x < player.x + player.width &&
+                    zombie.x + zombie.width > player.x &&
+                    zombie.y < player.y + player.height &&
+                    zombie.y + zombie.height > player.y) {
+                    player.health -= 1;
+                    updateHealthBar();
+                    if (player.health <= 0) {
+                        lives--;
+                        document.getElementById('lives').innerText = lives;
+                        if (lives <= 0) {
+                            isGameOver = true;
+                        } else {
+                            resetPlayer();
+                        }
+                    }
+                }
+            });
+        }
+
+        function resetPlayer() {
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 100;
+            player.health = 100;
+            updateHealthBar();
+        }
+
+        function updateHealthBar() {
+            const healthBar = document.getElementById('health-bar-inner');
+            healthBar.style.width = `${player.health}%`;
+        }
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (isGameOver) {
+                ctx.fillStyle = 'red';
+                ctx.font = '30px Arial';
+                ctx.fillText('Game Over!', canvas.width / 2 - 80, canvas.height / 2);
+                return;
+            }
+
+            if (zombies.length === 0) {
+                level++;
+                document.getElementById('level').innerText = level;
+                spawnZombies();
+            }
+
+            player.move();
+            player.draw();
+
+            camera.follow(player);
+
+            platforms.forEach(plat => {
+                ctx.fillStyle = '#8b4513';
+                ctx.fillRect(plat.x - camera.x, plat.y - camera.y, 200, 20);
+            });
+
+            walls.forEach(wall => {
+                ctx.fillStyle = '#808080';
+                ctx.fillRect(wall.x - camera.x, wall.y - camera.y, 50, 100);
+            });
+
+            pits.forEach(pit => {
+                ctx.fillStyle = '#ff6347';
+                ctx.fillRect(pit.x - camera.x, pit.y - camera.y, 100, 20);
+            });
+
+            zombies.forEach(zombie => {
+                ctx.fillStyle = '#a0e2a3';
+                ctx.fillRect(zombie.x - camera.x, zombie.y - camera.y, 40, 40);
+            });
+
+            bullets.forEach(bullet => {
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(bullet.x - camera.x, bullet.y - camera.y, 10, 5);
+                bullet.x += bullet.speed;
+            });
+
+            sword.forEach(swing => {
+                ctx.fillStyle = 'green';
+                ctx.fillRect(swing.x - camera.x, swing.y - camera.y, 80, 10);
+                swing.x += swing.speed;
+            });
+
+            moveZombies();
+            checkCollisions();
+        }
+
+        function gameLoop() {
+            update();
+            requestAnimationFrame(gameLoop);
+        }
+
+        spawnZombies();
+        spawnTerrain();
+        gameLoop();
+
+        document.getElementById('switchWeaponBtn').addEventListener('click', switchWeapon);
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                if (currentWeapon === 'gun') {
+                    fireGun();
+                } else {
+                    swordAttack();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
