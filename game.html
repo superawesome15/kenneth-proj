@@ -171,6 +171,10 @@
         let lives = 3;
         let enemyCount = 0;
 
+        // Add after the existing variable declarations
+        const bosses = [];
+        const BOSS_SPAWN_INTERVAL = 5; // Spawn boss every 5 levels
+
         // Define the camera object
         const camera = {
             x: 0,
@@ -326,11 +330,14 @@
 
         function spawnZombies() {
             zombies.length = 0;
+            bosses.length = 0;
             enemyCount = 0;
+            
+            // Spawn regular zombies
             for (let i = 0; i < 10 * level; i++) {
                 zombies.push({
                     x: Math.random() * worldWidth,
-                    y: worldHeight - 100,  // Place all zombies at the bottom
+                    y: worldHeight - 100,
                     width: 40,
                     height: 40,
                     health: 20,
@@ -338,6 +345,21 @@
                 });
                 enemyCount++;
             }
+            
+            // Spawn boss if it's a boss level
+            if (level % BOSS_SPAWN_INTERVAL === 0) {
+                bosses.push({
+                    x: worldWidth / 2,
+                    y: worldHeight - 150,
+                    width: 80,
+                    height: 80,
+                    health: 100,
+                    speed: 1.5,
+                    color: '#FF4500' // Orange-red color for boss
+                });
+                enemyCount++;
+            }
+            
             document.getElementById('enemyCount').innerText = enemyCount;
         }
 
@@ -423,60 +445,126 @@
                     }
                 });
             });
+
+            // Check bullet-boss collisions
+            bullets.forEach((bullet, bulletIndex) => {
+                bosses.forEach((boss, bossIndex) => {
+                    if (bullet.x < boss.x + boss.width &&
+                        bullet.x + bullet.width > boss.x &&
+                        bullet.y < boss.y + boss.height &&
+                        bullet.y + bullet.height > boss.y) {
+                        boss.health -= 10;
+                        bullets.splice(bulletIndex, 1);
+                        if (boss.health <= 0) {
+                            bosses.splice(bossIndex, 1);
+                            enemyCount--;
+                            document.getElementById('enemyCount').innerText = enemyCount;
+                        }
+                    }
+                });
+            });
+
+            // Check sword-boss collisions
+            sword.forEach((swordSlice, swordIndex) => {
+                bosses.forEach((boss, bossIndex) => {
+                    if (swordSlice.x < boss.x + boss.width &&
+                        swordSlice.x + swordSlice.width > boss.x &&
+                        swordSlice.y < boss.y + boss.height &&
+                        swordSlice.y + swordSlice.height > boss.y) {
+                        boss.health -= 20;
+                        sword.splice(swordIndex, 1);
+                        if (boss.health <= 0) {
+                            bosses.splice(bossIndex, 1);
+                            enemyCount--;
+                            document.getElementById('enemyCount').innerText = enemyCount;
+                        }
+                    }
+                });
+            });
         }
 
-       function moveZombies() {
-    zombies.forEach(zombie => {
-        // Move zombies left or right
-        if (zombie.x <= 0 || zombie.x >= worldWidth - zombie.width) {
-            zombie.speed = -zombie.speed; // Reverse direction if the zombie hits the world boundary
-        }
-
-        // Check for platform or wall collisions to adjust movement
-        let hitWall = false;
-        for (let wall of walls) {
-            if (zombie.x + zombie.width > wall.x && zombie.x < wall.x + wall.width &&
-                zombie.y + zombie.height > wall.y && zombie.y < wall.y + wall.height) {
-                hitWall = true;
-                break;
-            }
-        }
-
-        // If a wall is hit, reverse the movement direction
-        if (hitWall) {
-            zombie.speed = -zombie.speed;
-        }
-
-        // Move the zombies
-        zombie.x += zombie.speed;
-        zombie.y += zombie.speed;
-
-        // Ensure zombies stay within bounds of the game world
-        if (zombie.x < 0) zombie.x = 0;
-        if (zombie.x > worldWidth - zombie.width) zombie.x = worldWidth - zombie.width;
-        if (zombie.y < 0) zombie.y = 0;
-        if (zombie.y > worldHeight - zombie.height) zombie.y = worldHeight - zombie.height;
-
-        // Check collision with the player (and damage the player)
-        if (zombie.x < player.x + player.width &&
-            zombie.x + zombie.width > player.x &&
-            zombie.y < player.y + player.height &&
-            zombie.y + zombie.height > player.y) {
-            player.health -= 1;
-            updateHealthBar();
-            if (player.health <= 0) {
-                lives--;
-                document.getElementById('lives').innerText = lives;
-                if (lives <= 0) {
-                    isGameOver = true;
-                } else {
-                    resetPlayer();
+        function moveZombies() {
+            zombies.forEach(zombie => {
+                // Move zombies left or right
+                if (zombie.x <= 0 || zombie.x >= worldWidth - zombie.width) {
+                    zombie.speed = -zombie.speed; // Reverse direction if the zombie hits the world boundary
                 }
-            }
-        }
-    });
-}
 
+                // Check for platform or wall collisions to adjust movement
+                let hitWall = false;
+                for (let wall of walls) {
+                    if (zombie.x + zombie.width > wall.x && zombie.x < wall.x + wall.width &&
+                        zombie.y + zombie.height > wall.y && zombie.y < wall.y + wall.height) {
+                        hitWall = true;
+                        break;
+                    }
+                }
+
+                // If a wall is hit, reverse the movement direction
+                if (hitWall) {
+                    zombie.speed = -zombie.speed;
+                }
+
+                // Move the zombies
+                zombie.x += zombie.speed;
+                zombie.y += zombie.speed;
+
+                // Ensure zombies stay within bounds of the game world
+                if (zombie.x < 0) zombie.x = 0;
+                if (zombie.x > worldWidth - zombie.width) zombie.x = worldWidth - zombie.width;
+                if (zombie.y < 0) zombie.y = 0;
+                if (zombie.y > worldHeight - zombie.height) zombie.y = worldHeight - zombie.height;
+
+                // Check collision with the player (and damage the player)
+                if (zombie.x < player.x + player.width &&
+                    zombie.x + zombie.width > player.x &&
+                    zombie.y < player.y + player.height &&
+                    zombie.y + zombie.height > player.y) {
+                    player.health -= 1;
+                    updateHealthBar();
+                    if (player.health <= 0) {
+                        lives--;
+                        document.getElementById('lives').innerText = lives;
+                        if (lives <= 0) {
+                            isGameOver = true;
+                        } else {
+                            resetPlayer();
+                        }
+                    }
+                }
+            });
+
+            // Move bosses
+            bosses.forEach(boss => {
+                // Move towards player
+                const dx = player.x - boss.x;
+                const dy = player.y - boss.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    boss.x += (dx / distance) * boss.speed;
+                    boss.y += (dy / distance) * boss.speed;
+                }
+
+                // Boss collision with player (more damage than regular zombies)
+                if (boss.x < player.x + player.width &&
+                    boss.x + boss.width > player.x &&
+                    boss.y < player.y + player.height &&
+                    boss.y + boss.height > player.y) {
+                    player.health -= 2; // Bosses deal more damage
+                    updateHealthBar();
+                    if (player.health <= 0) {
+                        lives--;
+                        document.getElementById('lives').innerText = lives;
+                        if (lives <= 0) {
+                            isGameOver = true;
+                        } else {
+                            resetPlayer();
+                        }
+                    }
+                }
+            });
+        }
 
         function resetPlayer() {
             player.x = canvas.width / 2;
@@ -566,6 +654,18 @@
                         resetPlayer();
                     }
                 }
+            });
+
+            // Draw bosses
+            bosses.forEach(boss => {
+                ctx.fillStyle = boss.color;
+                ctx.fillRect(boss.x - camera.x, boss.y - camera.y, boss.width, boss.height);
+                
+                // Draw boss health bar
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(boss.x - camera.x, boss.y - camera.y - 20, boss.width, 5);
+                ctx.fillStyle = '#00FF00';
+                ctx.fillRect(boss.x - camera.x, boss.y - camera.y - 20, (boss.health / 100) * boss.width, 5);
             });
 
             moveZombies();
