@@ -223,15 +223,16 @@
                     this.lastDirection = 'right';
                 }
                 
-                // Update head position (slightly above player center)
-                this.headPosition = {
-                    x: this.x + (this.width / 2),
-                    y: this.y + (this.height / 4)  // Quarter way from top
-                };
-
-                if (keyState[' ']) {
+                // Change to ArrowUp for jumping
+                if (keyState['ArrowUp']) {
                     this.jump();
                 }
+                
+                // Update head position
+                this.headPosition = {
+                    x: this.x + (this.width / 2),
+                    y: this.y + (this.height / 4)
+                };
 
                 // Apply gravity
                 this.velocityY += this.gravity;
@@ -310,6 +311,14 @@
 
         window.addEventListener('keydown', (e) => {
             keyState[e.key] = true;
+            // Shoot with spacebar
+            if (e.key === ' ') {
+                if (currentWeapon === 'gun') {
+                    fireGun();
+                } else {
+                    swordAttack();
+                }
+            }
         });
         window.addEventListener('keyup', (e) => {
             keyState[e.key] = false;
@@ -546,16 +555,6 @@
         gameLoop();
 
         document.getElementById('switchWeaponBtn').addEventListener('click', switchWeapon);
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 's') {
-                if (currentWeapon === 'gun') {
-                    fireGun();
-                } else {
-                    swordAttack();
-                }
-            }
-        });
     </script>
 </body>
 </html>
